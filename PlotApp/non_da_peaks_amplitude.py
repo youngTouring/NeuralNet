@@ -43,6 +43,6 @@ class NonDaPeaks(QDialog):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    w = DaPeaks()
+    w = NonDaPeaks()
     w.show()
     sys.exit(app.exec_())
