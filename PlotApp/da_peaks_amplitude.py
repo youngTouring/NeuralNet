@@ -11,32 +11,26 @@ class DaPeaks(QDialog):
         self.ui.setupUi(self)
         self.ui.pushButtonCalculate_da.clicked.connect(self.Calculate)
         self.da_peaks = np.empty(shape=2)
-        self.peaks_full_width = None
         self.minima = None
-        self.contour_heights = None
         self.da_peaks_properities = None
-        self.minima_properties = None
         self.data = []
 
     def Calculate(self):
         try:
             peaks_height = self.ui.doubleSpinBox_da.value()
             self.da_peaks, self.da_peaks_properities = find_peaks(self.data, height=peaks_height)
-            self.prominence, prominence = peak_prominences(self.data, self.da_peaks)[0], peak_prominences(self.data,self.da_peaks)
-            self.peaks_width = peak_widths(self.data, self.da_peaks, prominence_data=prominence,rel_height=0.5)
-            self.contour_heights = self.data[self.da_peaks] - self.prominence
-            print(len(self.da_peaks))
-            self.minima_data = self.data * (-1)
-            self.minima, self.minima_properties = find_peaks(self.minima_data,distance=50, height=0.2)
-            print(len(self.minima))
-            self.prominence_minima, prominence_minima = peak_prominences(self.minima_data, self.minima)[0], \
-                                                        peak_prominences(self.minima_data, self.minima)
-            self.contour_heights_minima = self.minima_data[self.minima] - self.prominence_minima
-            self.peaks_full_width = np.array([self.peaks_width[1],
-                                              self.peaks_width[2],
-                                              self.minima])
+            minima_points_x = []
+            minima_points_y = []
+            for i,j in zip(self.da_peaks,self.da_peaks + 100):
+                point_y = np.min(self.data[i:j])
+                point_x = np.where(self.data == point_y)
+                minima_points_x.append(point_x[0].item(0))
+                minima_points_y.append(point_y)
+            minima_x = np.array(minima_points_x)
+            minima_y = np.array(minima_points_y)
+            self.da_peaks = np.vstack((self.da_peaks, self.data[self.da_peaks])).T
+            self.minima = np.vstack((minima_x, minima_y)).T
             self.ui.labelPeaksNumber_da.setText(f'Number of DA peaks: {len(self.da_peaks)}')
-
         except Exception as e:
             QMessageBox.information(self,'Info',e)
 

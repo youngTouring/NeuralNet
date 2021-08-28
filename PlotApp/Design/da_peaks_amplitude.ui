@@ -46,6 +46,12 @@
          <pointsize>9</pointsize>
         </font>
        </property>
+       <property name="minimum">
+        <double>-99.989999999999995</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
       </widget>
      </item>
      <item row="1" column="0">
