@@ -10,6 +10,7 @@ from scipy.signal import savgol_filter, peak_widths, peak_prominences
 import traceback
 import h5py
 import sys
+import os
 
 class MplCanvas(FigureCanvas):
     """Plotting class"""
@@ -31,21 +32,17 @@ class TrainingPlot(QMainWindow):
         self.da_minima_points_added = np.empty(shape=2)
         self.da_plot_added = None
         self.da_minima_plot_added = None
-        self.da_dataset_saved = False
         self.prominence_da = None
         self.prominence_properties_da = None
         self.peaks_width_da = None
-        self.peaks_full_width_da = None
 
         self.non_da_added = np.empty(shape=2)
         self.non_da_minima_points_added = np.empty(shape=2)
         self.non_da_plot_added = None
         self.minima_non_da_plot = None
-        self.non_da_dataset_saved = False
         self.prominence_non_da = None
         self.prominence_properties_non_da = None
         self.peaks_width_non_da = None
-        self.peaks_full_width_non_da = None
 
         self.ui.actionNON_DA_amplitude.triggered.connect(self.OpenNonDaAmplitude)
         self.ui.actionDA_amplitude.triggered.connect(self.OpenDaAmplitude)
@@ -67,21 +64,17 @@ class TrainingPlot(QMainWindow):
         self.non_da_minima_points_added = np.empty(shape=2)
         self.non_da_plot_added = None
         self.minima_non_da_plot = None
-        self.non_da_dataset_saved = False
         self.prominence_non_da = None
         self.prominence_properties_non_da = None
         self.peaks_width_non_da = None
-        self.peaks_full_width_non_da = None
 
         self.da_added = np.empty(shape=2)
         self.da_minima_points_added = np.empty(shape=2)
         self.da_plot_added = None
         self.da_minima_plot_added = None
-        self.da_dataset_saved = False
         self.prominence_da = None
         self.prominence_properties_da = None
         self.peaks_width_da = None
-        self.peaks_full_width_da = None
 
         self.new_peaks_width = None
         self.new_peaks_width_left = None
@@ -101,7 +94,7 @@ class TrainingPlot(QMainWindow):
             try:
                 ### Plot and data
                 data = h5py.File(file, 'r')
-                self.data = data.get('dataset_1')
+                self.data = data.get('signal')
                 self.data = np.array(self.data)
                 self.data = savgol_filter(self.data, 75, 6)
                 self.sc = MplCanvas(self, width=5, height=2, dpi=120)
@@ -231,7 +224,6 @@ class TrainingPlot(QMainWindow):
             self.sc.draw()
 
     def SaveDaAdded(self):
-        self.da_dataset_saved = True
         peaks_x = self.da_added[:-1]
         peaks_x = peaks_x[:, 0].astype(np.int)
         self.peaks = self.da_added[:-1]
@@ -246,7 +238,6 @@ class TrainingPlot(QMainWindow):
         return self.peaks, self.added_da_prominence, self.added_da_width[0], self.added_da_full_width, self.minima_peaks
 
     def SaveNonDaAdded(self):
-        self.non_da_dataset_saved = True
         peaks_x = self.non_da_added[:-1]
         peaks_x = peaks_x[:, 0].astype(np.int)
         self.peaks = self.non_da_added[:-1]
@@ -263,14 +254,12 @@ class TrainingPlot(QMainWindow):
     def GetMeasurements(self):
         if self.non_da_plot != None:
             peaks_x = self.non_da_amplitude_dialog.non_da_peaks[:,0].astype(np.int)
-            self.prominence_non_da, self.prominence_properties_non_da = peak_prominences(self.data,peaks_x)[0],\
-                                                          peak_prominences(self.data,peaks_x)
+            self.prominence_non_da, self.prominence_properties_non_da = peak_prominences(self.data,peaks_x)[0],peak_prominences(self.data,peaks_x)
             self.peaks_width_non_da = peak_widths(self.data, peaks_x,prominence_data=self.prominence_properties_non_da, rel_height=0.5)
             return self.prominence_non_da,self.peaks_width_non_da
         if self.da_plot != None:
             peaks_x = self.da_amplitude_dialog.da_peaks[:,0].astype(np.int)
-            self.prominence_da, self.prominence_properties_da = peak_prominences(self.data,peaks_x)[0],\
-                                                                        peak_prominences(self.data,peaks_x)
+            self.prominence_da, self.prominence_properties_da = peak_prominences(self.data,peaks_x)[0],peak_prominences(self.data,peaks_x)
             self.peaks_width_da = peak_widths(self.data, peaks_x,prominence_data=self.prominence_properties_da, rel_height=0.5)
             return self.prominence_da, self.peaks_width_da
 
@@ -281,8 +270,8 @@ class TrainingPlot(QMainWindow):
             if self.non_da_plot != None:
                 DS_DA = None
                 DS_JOINT = None
-                da_peaks, da_amplitude, da_width, da_full_width, da_minima = self.SaveDaAdded()
-                if self.da_dataset_saved == True:
+                if self.da_plot_added != None:
+                    da_peaks, da_amplitude, da_width, da_full_width, da_minima = self.SaveDaAdded()
                     da_labels = np.ones(len(da_peaks)).astype(np.int)
                     DS_DA = tf.data.Dataset.from_tensor_slices((da_peaks, da_amplitude, da_width, da_full_width, da_minima,da_labels))
                 peaks_y_values = self.non_da_amplitude_dialog.non_da_peaks[:,1]
@@ -290,19 +279,24 @@ class TrainingPlot(QMainWindow):
                 peaks_y_values_minima = self.non_da_amplitude_dialog.minima[:,1]
                 prominence,width = self.GetMeasurements()
                 peaks_full_width = np.array([self.non_da_amplitude_dialog.minima[:, 0] - width[2]]).flatten()
-                DS_NON_DA = tf.data.Dataset.from_tensor_slices((peaks_y_values, prominence,width[0],
-                                                               peaks_full_width, peaks_y_values_minima,non_da_labels))
+                DS_NON_DA = tf.data.Dataset.from_tensor_slices((peaks_y_values, prominence,width[0],peaks_full_width, peaks_y_values_minima,
+                                                                non_da_labels))
                 if DS_DA != None:
                     DS_JOINT = DS_NON_DA.concatenate(DS_DA)
                 else:
                     DS_JOINT = DS_NON_DA
-                # path = 'C:/Users/miko5/Desktop/Python/ML/Deep_learning/Scikitlearn/PlotApp'
-                # tf.data.experimental.save(DS_JOINT, path=path, compression=None, shard_func=None)
+                catalog = './Dataset'
+                if not os.path.exists(catalog):
+                    os.makedirs(catalog)
+                path = os.path.realpath(catalog)
+                DS_JOINT = DS_JOINT.shuffle(buffer_size=len(non_da_labels))
+                tf.data.experimental.save(DS_JOINT, path=path, compression=None, shard_func=None)
+
             if self.da_plot != None:
                 DS_NON_DA = None
                 DS_JOINT = None
-                non_da_peaks, non_da_amplitude, non_da_width, non_da_full_width, non_da_minima = self.SaveNonDaAdded()
-                if self.non_da_dataset_saved == True:
+                if self.non_da_plot_added != None:
+                    non_da_peaks, non_da_amplitude, non_da_width, non_da_full_width, non_da_minima = self.SaveNonDaAdded()
                     non_da_labels = np.zeros(len(non_da_peaks)).astype(np.int)
                     DS_NON_DA = tf.data.Dataset.from_tensor_slices((non_da_peaks, non_da_amplitude, non_da_width, non_da_full_width, non_da_minima,
                                                                     non_da_labels))
@@ -311,14 +305,18 @@ class TrainingPlot(QMainWindow):
                 peaks_y_values_minima = self.da_amplitude_dialog.minima[:, 1]
                 prominence, width = self.GetMeasurements()
                 peaks_full_width = np.array([self.da_amplitude_dialog.minima[:, 0] - width[2]]).flatten()
-                DS_DA = tf.data.Dataset.from_tensor_slices((peaks_y_values, prominence, width[0],
-                                                                peaks_full_width, peaks_y_values_minima, da_labels))
+                DS_DA = tf.data.Dataset.from_tensor_slices((peaks_y_values, prominence, width[0],peaks_full_width, peaks_y_values_minima,
+                                                            da_labels))
                 if DS_NON_DA != None:
                     DS_JOINT = DS_DA.concatenate(DS_NON_DA)
                 else:
                     DS_JOINT = DS_DA
-                # path = 'C:/Users/miko5/Desktop/Python/ML/Deep_learning/Scikitlearn/PlotApp'
-                # tf.data.experimental.save(DS_JOINT, path=path, compression=None, shard_func=None)
+                DS_JOINT = DS_JOINT.shuffle(buffer_size=len(da_labels))
+                catalog = './Dataset'
+                if not os.path.exists(catalog):
+                    os.makedirs(catalog)
+                path = os.path.realpath(catalog)
+                tf.data.experimental.save(DS_JOINT, path=path, compression=None, shard_func=None)
         except Exception as e:
             exc_info = sys.exc_info()
             traceback.print_exception(*exc_info)
