@@ -8,6 +8,7 @@ from non_da_peaks_amplitude import *
 import tensorflow as tf
 from scipy.signal import savgol_filter, peak_widths, peak_prominences
 import traceback
+import pickle
 import h5py
 import sys
 import os
@@ -27,6 +28,7 @@ class TrainingPlot(QMainWindow):
         self.ui.setupUi(self)
         self.ui.actionOtw_rz_plik.triggered.connect(self.OpenFile)
         self.ui.actionZapisz_plik.triggered.connect(self.SaveDataset)
+        self.file_name_no_extension = ''
 
         self.da_added = np.empty(shape=2)
         self.da_minima_points_added = np.empty(shape=2)
@@ -59,7 +61,7 @@ class TrainingPlot(QMainWindow):
             child = self.ui.gridLayout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
-
+        self.file_name_no_extension = ''
         self.non_da_added = np.empty(shape=2)
         self.non_da_minima_points_added = np.empty(shape=2)
         self.non_da_plot_added = None
@@ -109,8 +111,8 @@ class TrainingPlot(QMainWindow):
                 self.xdataPlot = np.arange(0, len(self.data), dtype=float)
                 self.ydataPlot = self.data
                 file_name = str(file).split('/')
-                file_name_no_extension = file_name[-1].split('.')
-                self.sc.axes.set_title(file_name_no_extension[0])
+                self.file_name_no_extension = file_name[-1].split('.')
+                self.sc.axes.set_title(self.file_name_no_extension[0])
             except Exception as e:
                 '''In case of incorrect file extension show error'''
                 exc_info = sys.exc_info()
@@ -268,55 +270,59 @@ class TrainingPlot(QMainWindow):
         Labels: NON_DA = 0; DA = 1"""
         try:
             if self.non_da_plot != None:
-                DS_DA = None
-                DS_JOINT = None
-                if self.da_plot_added != None:
-                    da_peaks, da_amplitude, da_width, da_full_width, da_minima = self.SaveDaAdded()
-                    da_labels = np.ones(len(da_peaks)).astype(np.int)
-                    DS_DA = tf.data.Dataset.from_tensor_slices((da_peaks, da_amplitude, da_width, da_full_width, da_minima,da_labels))
-                peaks_y_values = self.non_da_amplitude_dialog.non_da_peaks[:,1]
-                non_da_labels = np.zeros(len(peaks_y_values)).astype(np.int)
-                peaks_y_values_minima = self.non_da_amplitude_dialog.minima[:,1]
-                prominence,width = self.GetMeasurements()
-                peaks_full_width = np.array([self.non_da_amplitude_dialog.minima[:, 0] - width[2]]).flatten()
-                DS_NON_DA = tf.data.Dataset.from_tensor_slices((peaks_y_values, prominence,width[0],peaks_full_width, peaks_y_values_minima,
-                                                                non_da_labels))
-                if DS_DA != None:
-                    DS_JOINT = DS_NON_DA.concatenate(DS_DA)
-                else:
-                    DS_JOINT = DS_NON_DA
                 catalog = './Dataset'
                 if not os.path.exists(catalog):
                     os.makedirs(catalog)
-                path = os.path.realpath(catalog)
-                DS_JOINT = DS_JOINT.shuffle(buffer_size=len(non_da_labels))
-                tf.data.experimental.save(DS_JOINT, path=path, compression=None, shard_func=None)
-
+                peaks_y_values = self.non_da_amplitude_dialog.non_da_peaks[:, 1]
+                non_da_labels = np.zeros(len(peaks_y_values)).astype(np.int)
+                peaks_y_values_minima = self.non_da_amplitude_dialog.minima[:, 1]
+                prominence, width = self.GetMeasurements()
+                peaks_full_width = np.array([self.non_da_amplitude_dialog.minima[:, 0] - width[2]]).flatten()
+                if self.da_plot_added == None:
+                    data = [peaks_y_values, prominence,width[0],peaks_full_width, peaks_y_values_minima,non_da_labels]
+                    with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
+                        for i in data:
+                            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+                else:
+                    da_peaks, da_amplitude, da_width, da_full_width, da_minima = self.SaveDaAdded()
+                    da_labels = np.ones(len(da_peaks)).astype(np.int)
+                    peaks_y_values = np.concatenate((peaks_y_values,da_peaks))
+                    prominence = np.concatenate((prominence,da_amplitude))
+                    width = np.concatenate((width[0],da_width))
+                    peaks_full_width = np.concatenate((peaks_full_width,da_full_width))
+                    peaks_y_values_minima = np.concatenate((peaks_y_values_minima,da_minima))
+                    labels = np.concatenate((non_da_labels,da_labels))
+                    data = [peaks_y_values, prominence,width,peaks_full_width, peaks_y_values_minima,labels]
+                    with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
+                        for i in data:
+                            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
             if self.da_plot != None:
-                DS_NON_DA = None
-                DS_JOINT = None
-                if self.non_da_plot_added != None:
-                    non_da_peaks, non_da_amplitude, non_da_width, non_da_full_width, non_da_minima = self.SaveNonDaAdded()
-                    non_da_labels = np.zeros(len(non_da_peaks)).astype(np.int)
-                    DS_NON_DA = tf.data.Dataset.from_tensor_slices((non_da_peaks, non_da_amplitude, non_da_width, non_da_full_width, non_da_minima,
-                                                                    non_da_labels))
+                catalog = './Dataset'
+                if not os.path.exists(catalog):
+                    os.makedirs(catalog)
                 peaks_y_values = self.da_amplitude_dialog.da_peaks[:, 1]
                 da_labels = np.ones(len(peaks_y_values)).astype(np.int)
                 peaks_y_values_minima = self.da_amplitude_dialog.minima[:, 1]
                 prominence, width = self.GetMeasurements()
                 peaks_full_width = np.array([self.da_amplitude_dialog.minima[:, 0] - width[2]]).flatten()
-                DS_DA = tf.data.Dataset.from_tensor_slices((peaks_y_values, prominence, width[0],peaks_full_width, peaks_y_values_minima,
-                                                            da_labels))
-                if DS_NON_DA != None:
-                    DS_JOINT = DS_DA.concatenate(DS_NON_DA)
+                if self.non_da_plot_added == None:
+                    data = [peaks_y_values, prominence,width[0],peaks_full_width, peaks_y_values_minima,da_labels]
+                    with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
+                        for i in data:
+                            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
                 else:
-                    DS_JOINT = DS_DA
-                DS_JOINT = DS_JOINT.shuffle(buffer_size=len(da_labels))
-                catalog = './Dataset'
-                if not os.path.exists(catalog):
-                    os.makedirs(catalog)
-                path = os.path.realpath(catalog)
-                tf.data.experimental.save(DS_JOINT, path=path, compression=None, shard_func=None)
+                    non_da_peaks, non_da_amplitude, non_da_width, non_da_full_width, non_da_minima = self.SaveNonDaAdded()
+                    non_da_labels = np.zeros(len(non_da_peaks)).astype(np.int)
+                    peaks_y_values = np.concatenate((peaks_y_values, non_da_peaks))
+                    prominence = np.concatenate((prominence, non_da_amplitude))
+                    width = np.concatenate((width[0], non_da_width))
+                    peaks_full_width = np.concatenate((peaks_full_width, non_da_full_width))
+                    peaks_y_values_minima = np.concatenate((peaks_y_values_minima, non_da_minima))
+                    labels = np.concatenate((da_labels, non_da_labels))
+                    data = [peaks_y_values,prominence,width,peaks_full_width,peaks_y_values_minima,labels]
+                    with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
+                        for i in data:
+                            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
         except Exception as e:
             exc_info = sys.exc_info()
             traceback.print_exception(*exc_info)

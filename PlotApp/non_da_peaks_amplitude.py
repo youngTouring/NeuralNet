@@ -18,7 +18,7 @@ class NonDaPeaks(QDialog):
     def Calculate(self):
         try:
             peaks_height = self.ui.doubleSpinBox_non_da.value()
-            self.non_da_peaks, self.non_da_properties = find_peaks(self.data, height=peaks_height)
+            self.non_da_peaks, self.non_da_properties = find_peaks(self.data, height=peaks_height,distance=150)
             minima_points_y = []
             minima_points_x = []
             for i,j in zip(self.non_da_peaks,self.non_da_peaks + 100):

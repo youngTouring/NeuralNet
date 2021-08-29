@@ -18,7 +18,7 @@ class DaPeaks(QDialog):
     def Calculate(self):
         try:
             peaks_height = self.ui.doubleSpinBox_da.value()
-            self.da_peaks, self.da_peaks_properities = find_peaks(self.data, height=peaks_height)
+            self.da_peaks, self.da_peaks_properities = find_peaks(self.data, height=peaks_height,distance=150)
             minima_points_x = []
             minima_points_y = []
             for i,j in zip(self.da_peaks,self.da_peaks + 100):
