@@ -266,7 +266,7 @@ class TrainingPlot(QMainWindow):
             return self.prominence_da, self.peaks_width_da
 
     def SaveDataset(self):
-        """Saves tf dataset automatically added peaks and those with changed class
+        """Saves .ann dataset: automatically added peaks and those with changed class
         Labels: NON_DA = 0; DA = 1"""
         try:
             if self.non_da_plot != None:
@@ -283,6 +283,7 @@ class TrainingPlot(QMainWindow):
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         for i in data:
                             pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+                        QMessageBox.information(self,'Information',f'Data saved succesfully to: {self.file_name_no_extension[0]}.ann')
                 else:
                     da_peaks, da_amplitude, da_width, da_full_width, da_minima = self.SaveDaAdded()
                     da_labels = np.ones(len(da_peaks)).astype(np.int)
@@ -296,6 +297,8 @@ class TrainingPlot(QMainWindow):
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         for i in data:
                             pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+                        QMessageBox.information(self,'Information',f'Data saved succesfully to: {self.file_name_no_extension[0]}.ann')
+
             if self.da_plot != None:
                 catalog = './Dataset'
                 if not os.path.exists(catalog):
@@ -310,6 +313,7 @@ class TrainingPlot(QMainWindow):
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         for i in data:
                             pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+                        QMessageBox.information(self,'Information',f'Data saved succesfully to: {self.file_name_no_extension[0]}.ann')
                 else:
                     non_da_peaks, non_da_amplitude, non_da_width, non_da_full_width, non_da_minima = self.SaveNonDaAdded()
                     non_da_labels = np.zeros(len(non_da_peaks)).astype(np.int)
@@ -323,6 +327,8 @@ class TrainingPlot(QMainWindow):
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         for i in data:
                             pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+                        QMessageBox.information(self, 'Information',f'Data saved succesfully to: {self.file_name_no_extension[0]}.ann')
+
         except Exception as e:
             exc_info = sys.exc_info()
             traceback.print_exception(*exc_info)
