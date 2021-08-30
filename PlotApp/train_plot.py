@@ -163,42 +163,40 @@ class TrainingPlot(QMainWindow):
                 if self.non_da_plot != None:
                     if i in self.non_da_amplitude_dialog.non_da_peaks[:, 0]:
                         value_to_delete = np.where(self.non_da_amplitude_dialog.non_da_peaks == i)
-                        value_to_delete_minima = value_to_delete[0].item(0)
-                        value_to_add = value_to_delete[0].item(0)
-                        point_to_add = self.non_da_amplitude_dialog.non_da_peaks[value_to_add]
+                        value_change = value_to_delete[0].item(0)
+                        point_to_add = self.non_da_amplitude_dialog.non_da_peaks[value_change]
                         self.da_added = np.insert(self.da_added, 0, point_to_add, axis=0)
                         self.da_added = np.reshape(self.da_added, (-1, 2))
                         self.non_da_amplitude_dialog.non_da_peaks = np.delete(self.non_da_amplitude_dialog.non_da_peaks,
                                                                               np.where(self.non_da_amplitude_dialog.non_da_peaks[:, 0] == i)
                                                                               ,axis=0)
                         self.non_da_amplitude_dialog.non_da_peaks = np.reshape(self.non_da_amplitude_dialog.non_da_peaks, (-1, 2))
-                        self.non_da_plot.set_offsets(self.non_da_amplitude_dialog.non_da_peaks)
-                        minima_point_to_add = self.non_da_amplitude_dialog.minima[value_to_add]
+                        minima_point_to_add = self.non_da_amplitude_dialog.minima[value_change]
                         self.da_minima_points_added = np.insert(self.da_minima_points_added, 0, minima_point_to_add, axis=0)
                         self.da_minima_points_added = np.reshape(self.da_minima_points_added, (-1, 2))
-                        self.non_da_amplitude_dialog.minima = np.delete(self.non_da_amplitude_dialog.minima,value_to_delete_minima, axis=0)
+                        self.non_da_amplitude_dialog.minima = np.delete(self.non_da_amplitude_dialog.minima,value_change, axis=0)
                         self.non_da_amplitude_dialog.minima = np.reshape(self.non_da_amplitude_dialog.minima, (-1, 2))
+                        self.non_da_plot.set_offsets(self.non_da_amplitude_dialog.non_da_peaks)
                         self.minima_non_da_plot.set_offsets(self.non_da_amplitude_dialog.minima)
                         self.Update_da_plot()
                         break
                 if self.da_plot != None:
                     if i in self.da_amplitude_dialog.da_peaks[:,0]:
                         value_to_delete = np.where(self.da_amplitude_dialog.da_peaks == i)
-                        value_to_delete_minima = value_to_delete[0].item(0)
-                        value_to_add = value_to_delete[0].item(0)
-                        point_to_add = self.da_amplitude_dialog.da_peaks[value_to_add]
+                        value_change = value_to_delete[0].item(0)
+                        point_to_add = self.da_amplitude_dialog.da_peaks[value_change]
                         self.non_da_added = np.insert(self.non_da_added, 0, point_to_add, axis=0)
                         self.non_da_added = np.reshape(self.non_da_added, (-1, 2))
                         self.da_amplitude_dialog.da_peaks = np.delete(self.da_amplitude_dialog.da_peaks,
                                                                               np.where(self.da_amplitude_dialog.da_peaks[:, 0] == i)
                                                                               ,axis=0)
                         self.da_amplitude_dialog.da_peaks = np.reshape(self.da_amplitude_dialog.da_peaks, (-1, 2))
-                        self.da_plot.set_offsets(self.da_amplitude_dialog.da_peaks)
-                        minima_point_to_add = self.da_amplitude_dialog.minima[value_to_add]
+                        minima_point_to_add = self.da_amplitude_dialog.minima[value_change]
                         self.non_da_minima_points_added = np.insert(self.non_da_minima_points_added, 0, minima_point_to_add,axis=0)
                         self.non_da_minima_points_added = np.reshape(self.non_da_minima_points_added, (-1, 2))
-                        self.da_amplitude_dialog.minima = np.delete(self.da_amplitude_dialog.minima,value_to_delete_minima, axis=0)
+                        self.da_amplitude_dialog.minima = np.delete(self.da_amplitude_dialog.minima,value_change, axis=0)
                         self.da_amplitude_dialog.minima = np.reshape(self.da_amplitude_dialog.minima, (-1, 2))
+                        self.da_plot.set_offsets(self.da_amplitude_dialog.da_peaks)
                         self.minima_da_plot.set_offsets(self.da_amplitude_dialog.minima)
                         self.Update_non_da_plot()
                         break

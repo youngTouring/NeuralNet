@@ -31,7 +31,7 @@ class Ui_Dialog(object):
         font.setPointSize(9)
         self.doubleSpinBox_non_da.setFont(font)
         self.doubleSpinBox_non_da.setMinimum(-99.99)
-        self.doubleSpinBox_non_da.setSingleStep(0.1)
+        self.doubleSpinBox_non_da.setSingleStep(0.05)
         self.doubleSpinBox_non_da.setObjectName("doubleSpinBox_non_da")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.doubleSpinBox_non_da)
         self.pushButtonCalculate_non_da = QtWidgets.QPushButton(Dialog)
