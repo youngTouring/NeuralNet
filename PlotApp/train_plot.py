@@ -1,12 +1,12 @@
-import numpy as np
-from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
-from PlotApp.Design.train_plot_translated import *
-from da_peaks_amplitude import *
-from non_da_peaks_amplitude import *
-import tensorflow as tf
 from scipy.signal import savgol_filter, peak_widths, peak_prominences
+from PyQt5.QtWidgets import QMainWindow, QFileDialog
+from PlotApp.Design.train_plot_translated import *
+from matplotlib.figure import Figure
+from non_da_peaks_amplitude import *
+from da_peaks_amplitude import *
+import numpy as np
+import tensorflow as tf
 import traceback
 import pickle
 import h5py
@@ -200,6 +200,36 @@ class TrainingPlot(QMainWindow):
                         self.minima_da_plot.set_offsets(self.da_amplitude_dialog.minima)
                         self.Update_non_da_plot()
                         break
+        if event.key == 'x':
+            xdata_click = event.xdata
+            xdata_nearest = (np.abs(self.xdataPlot - xdata_click)).argmin()
+            deletion_range = self.xdataPlot[
+                (self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
+            for i in deletion_range:
+                if self.non_da_plot != None:
+                    if i in self.non_da_amplitude_dialog.non_da_peaks[:, 0]:
+                        value_to_delete = np.where(self.non_da_amplitude_dialog.non_da_peaks == i)
+                        value_change = value_to_delete[0].item(0)
+                        self.non_da_amplitude_dialog.non_da_peaks = np.delete(self.non_da_amplitude_dialog.non_da_peaks,
+                                                                          np.where(self.non_da_amplitude_dialog.non_da_peaks[:,0] == i),axis=0)
+                        self.non_da_amplitude_dialog.non_da_peaks = np.reshape(self.non_da_amplitude_dialog.non_da_peaks,(-1, 2))
+                        self.non_da_amplitude_dialog.minima = np.delete(self.non_da_amplitude_dialog.minima, value_change, axis=0)
+                        self.non_da_amplitude_dialog.minima = np.reshape(self.non_da_amplitude_dialog.minima, (-1, 2))
+                        self.non_da_plot.set_offsets(self.non_da_amplitude_dialog.non_da_peaks)
+                        self.minima_non_da_plot.set_offsets(self.non_da_amplitude_dialog.minima)
+                        break
+                if self.da_plot != None:
+                    if i in self.da_amplitude_dialog.da_peaks[:, 0]:
+                        value_to_delete = np.where(self.da_amplitude_dialog.da_peaks == i)
+                        value_change = value_to_delete[0].item(0)
+                        self.da_amplitude_dialog.da_peaks = np.delete(self.da_amplitude_dialog.da_peaks,
+                                                                      np.where(self.da_amplitude_dialog.da_peaks[:, 0] == i),axis=0)
+                        self.da_amplitude_dialog.da_peaks = np.reshape(self.da_amplitude_dialog.da_peaks, (-1, 2))
+                        self.da_amplitude_dialog.minima = np.delete(self.da_amplitude_dialog.minima, value_change, axis=0)
+                        self.da_amplitude_dialog.minima = np.reshape(self.da_amplitude_dialog.minima, (-1, 2))
+                        self.da_plot.set_offsets(self.da_amplitude_dialog.da_peaks)
+                        self.minima_da_plot.set_offsets(self.da_amplitude_dialog.minima)
+                        break
 
     def Update_non_da_plot(self):
         non_da = self.non_da_added[:-1]
@@ -234,8 +264,7 @@ class TrainingPlot(QMainWindow):
         self.minima_peaks = self.minima_peaks[:, 1]
         self.added_da_prominence = peak_prominences(self.data, peaks_x)[0]
         self.added_da_width = peak_widths(self.data, peaks_x, rel_height=0.5)
-        self.added_da_full_width = np.array([minima_x - self.added_da_width[2]]).flatten()
-        return self.peaks, self.added_da_prominence, self.added_da_width[0], self.added_da_full_width, self.minima_peaks
+        return self.peaks, self.added_da_prominence, self.added_da_width[0], self.minima_peaks
 
     def SaveNonDaAdded(self):
         peaks_x = self.non_da_added[:-1]
@@ -248,8 +277,7 @@ class TrainingPlot(QMainWindow):
         self.minima_peaks = self.minima_peaks[:,1]
         self.added_non_da_prominence = peak_prominences(self.data, peaks_x)[0]
         self.added_non_da_width = peak_widths(self.data, peaks_x, rel_height=0.5)
-        self.added_non_da_full_width = np.array([minima_x - self.added_non_da_width[2]]).flatten()
-        return self.peaks,self.added_non_da_prominence,self.added_non_da_width[0],self.added_non_da_full_width,self.minima_peaks
+        return self.peaks,self.added_non_da_prominence,self.added_non_da_width[0],self.minima_peaks
 
     def GetMeasurements(self):
         if self.non_da_plot != None:
@@ -275,23 +303,21 @@ class TrainingPlot(QMainWindow):
                 non_da_labels = np.zeros(len(peaks_y_values)).astype(np.int)
                 peaks_y_values_minima = self.non_da_amplitude_dialog.minima[:, 1]
                 prominence, width = self.GetMeasurements()
-                peaks_full_width = np.array([self.non_da_amplitude_dialog.minima[:, 0] - width[2]]).flatten()
                 if self.da_plot_added == None:
-                    data = [peaks_y_values, prominence,width[0],peaks_full_width, peaks_y_values_minima,non_da_labels]
+                    data = [peaks_y_values, prominence,width[0], peaks_y_values_minima,non_da_labels]
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
                         f.close()
                         QMessageBox.information(self,'Information',f'Data saved succesfully to: {self.file_name_no_extension[0]}.ann')
                 else:
-                    da_peaks, da_amplitude, da_width, da_full_width, da_minima = self.SaveDaAdded()
+                    da_peaks, da_amplitude, da_width, da_minima = self.SaveDaAdded()
                     da_labels = np.ones(len(da_peaks)).astype(np.int)
                     peaks_y_values = np.concatenate((peaks_y_values,da_peaks))
                     prominence = np.concatenate((prominence,da_amplitude))
                     width = np.concatenate((width[0],da_width))
-                    peaks_full_width = np.concatenate((peaks_full_width,da_full_width))
                     peaks_y_values_minima = np.concatenate((peaks_y_values_minima,da_minima))
                     labels = np.concatenate((non_da_labels,da_labels))
-                    data = [peaks_y_values, prominence,width,peaks_full_width, peaks_y_values_minima,labels]
+                    data = [peaks_y_values, prominence,width, peaks_y_values_minima,labels]
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
                         f.close()
@@ -305,23 +331,21 @@ class TrainingPlot(QMainWindow):
                 da_labels = np.ones(len(peaks_y_values)).astype(np.int)
                 peaks_y_values_minima = self.da_amplitude_dialog.minima[:, 1]
                 prominence, width = self.GetMeasurements()
-                peaks_full_width = np.array([self.da_amplitude_dialog.minima[:, 0] - width[2]]).flatten()
                 if self.non_da_plot_added == None:
-                    data = [peaks_y_values, prominence,width[0],peaks_full_width, peaks_y_values_minima,da_labels]
+                    data = [peaks_y_values, prominence,width[0], peaks_y_values_minima,da_labels]
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
                         f.close()
                         QMessageBox.information(self,'Information',f'Data saved succesfully to: {self.file_name_no_extension[0]}.ann')
                 else:
-                    non_da_peaks, non_da_amplitude, non_da_width, non_da_full_width, non_da_minima = self.SaveNonDaAdded()
+                    non_da_peaks, non_da_amplitude, non_da_width, non_da_minima = self.SaveNonDaAdded()
                     non_da_labels = np.zeros(len(non_da_peaks)).astype(np.int)
                     peaks_y_values = np.concatenate((peaks_y_values, non_da_peaks))
                     prominence = np.concatenate((prominence, non_da_amplitude))
                     width = np.concatenate((width[0], non_da_width))
-                    peaks_full_width = np.concatenate((peaks_full_width, non_da_full_width))
                     peaks_y_values_minima = np.concatenate((peaks_y_values_minima, non_da_minima))
                     labels = np.concatenate((da_labels, non_da_labels))
-                    data = [peaks_y_values,prominence,width,peaks_full_width,peaks_y_values_minima,labels]
+                    data = [peaks_y_values,prominence,width,peaks_y_values_minima,labels]
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
                         f.close()

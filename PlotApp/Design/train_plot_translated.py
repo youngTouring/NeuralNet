@@ -55,7 +55,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "train_plot"))
         self.menuPlik.setTitle(_translate("MainWindow", "File"))
         self.menuAction.setTitle(_translate("MainWindow", "Action"))
         self.actionOtw_rz_plik.setText(_translate("MainWindow", "Open"))
