@@ -33,11 +33,9 @@ class TrainingPlot(QMainWindow):
         self.da_added = np.empty(shape=2)
         self.da_minima_points_added = np.empty(shape=2)
         self.da_plot_added = None
-        self.da_minima_plot_added = None
         self.prominence_da = None
         self.prominence_properties_da = None
         self.peaks_width_da = None
-        self.peaks_full_width_da = None
 
         self.non_da_added = np.empty(shape=2)
         self.non_da_minima_points_added = np.empty(shape=2)
@@ -46,7 +44,6 @@ class TrainingPlot(QMainWindow):
         self.prominence_non_da = None
         self.prominence_properties_non_da = None
         self.peaks_width_non_da = None
-        self.peaks_full_width_non_da = None
 
         self.ui.actionNON_DA_amplitude.triggered.connect(self.OpenNonDaAmplitude)
         self.ui.actionDA_amplitude.triggered.connect(self.OpenDaAmplitude)
@@ -75,13 +72,9 @@ class TrainingPlot(QMainWindow):
         self.da_added = np.empty(shape=2)
         self.da_minima_points_added = np.empty(shape=2)
         self.da_plot_added = None
-        self.da_minima_plot_added = None
         self.prominence_da = None
         self.prominence_properties_da = None
         self.peaks_width_da = None
-
-        self.new_peaks_width = None
-        self.new_peaks_width_left = None
 
         self.minima_da_plot = None
         self.minima_da_plot_added = None
@@ -157,10 +150,11 @@ class TrainingPlot(QMainWindow):
 
     def ChangePeaksClass(self,event):
         """Deletes labels from self.non_da and self.da. Deleting label from plot - in progress"""
+        xdata_click = event.xdata
+        xdata_nearest = (np.abs(self.xdataPlot - xdata_click)).argmin()
+        deletion_range = self.xdataPlot[
+        (self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
         if event.key == 'z':
-            xdata_click = event.xdata
-            xdata_nearest = (np.abs(self.xdataPlot - xdata_click)).argmin()
-            deletion_range = self.xdataPlot[(self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
             for i in deletion_range:
                 if self.non_da_plot != None:
                     if i in self.non_da_amplitude_dialog.non_da_peaks[:, 0]:
@@ -203,10 +197,6 @@ class TrainingPlot(QMainWindow):
                         self.Update_non_da_plot()
                         break
         if event.key == 'x':
-            xdata_click = event.xdata
-            xdata_nearest = (np.abs(self.xdataPlot - xdata_click)).argmin()
-            deletion_range = self.xdataPlot[
-                (self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
             for i in deletion_range:
                 if self.non_da_plot != None:
                     if i in self.non_da_amplitude_dialog.non_da_peaks[:, 0]:
