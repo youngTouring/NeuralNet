@@ -38,6 +38,7 @@ class Viewer(QMainWindow):
         self.peaks = None
         self.prominence = None
         self.width = None
+        self.full_width = None
         self.minima = None
         self.labels = None
         self.plot = None
@@ -52,7 +53,6 @@ class Viewer(QMainWindow):
                 self.sc = MplCanvas(self, width=5, height=2, dpi=120)
                 self.sc.setFocusPolicy(QtCore.Qt.ClickFocus)
                 self.sc.setFocus()
-                # self.sc.mpl_connect('key_press_event', self.ChangePeaksClass)
                 self.sc.axes.plot(self.data)
                 self.sc.axes.grid()
                 toolbar = NavigationToolbar(self.sc, self)
@@ -90,13 +90,16 @@ class Viewer(QMainWindow):
             self.prominence, prominence = peak_prominences(self.data, peaks_x)[0], peak_prominences(self.data, peaks_x)
             self.width = peak_widths(self.data, peaks_x, prominence_data=prominence,
                                                   rel_height=0.5)
+            self.full_width = np.array([self.minima[:, 0] - self.width[2]]).flatten()
+            self.full_width = np.clip(self.full_width,0,85)
+            self.width = np.clip(self.width,0,65)
         except Exception as e:
             QMessageBox.critical(self,'Info',e)
 
     def PlotPeaks(self):
         try:
             data_dict = {'Peaks': self.peaks[:,1], 'Amplitude': self.prominence[0],
-                              'Width': self.width[0],'Minima': self.minima[:,1]}
+                              'Width': self.width[0],'Full_width':self.full_width,'Minima': self.minima[:,1]}
             self.signal_dataframe = pd.DataFrame(data=data_dict)
             data = self.signal_dataframe
             scaler = StandardScaler()
@@ -105,7 +108,7 @@ class Viewer(QMainWindow):
             train_data,test_data = train_test_split(data,test_size=0.2,shuffle=False)
             scaler = StandardScaler().fit(train_data)
             data = scaler.transform(data)
-            classifier = tf.keras.models.load_model('peaks_classifier_model.h5')
+            classifier = tf.keras.models.load_model('peaks_classifier_model_2.h5')
             prediction = classifier.predict_classes(data)
             data = scaler.inverse_transform(data)
             self.signal_dataframe['Labels'] = prediction
