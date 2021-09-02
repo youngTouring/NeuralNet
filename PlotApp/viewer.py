@@ -38,7 +38,6 @@ class Viewer(QMainWindow):
         self.peaks = None
         self.prominence = None
         self.width = None
-        self.full_width = None
         self.minima = None
         self.labels = None
         self.plot = None
@@ -90,8 +89,6 @@ class Viewer(QMainWindow):
             self.prominence, prominence = peak_prominences(self.data, peaks_x)[0], peak_prominences(self.data, peaks_x)
             self.width = peak_widths(self.data, peaks_x, prominence_data=prominence,
                                                   rel_height=0.5)
-            self.full_width = np.array([self.minima[:, 0] - self.width[2]]).flatten()
-            self.full_width = np.clip(self.full_width,0,85)
             self.width = np.clip(self.width,0,65)
         except Exception as e:
             QMessageBox.critical(self,'Info',e)
@@ -99,7 +96,7 @@ class Viewer(QMainWindow):
     def PlotPeaks(self):
         try:
             data_dict = {'Peaks': self.peaks[:,1], 'Amplitude': self.prominence[0],
-                              'Width': self.width[0],'Full_width':self.full_width,'Minima': self.minima[:,1]}
+                              'Width': self.width[0],'Minima': self.minima[:,1]}
             self.signal_dataframe = pd.DataFrame(data=data_dict)
             data = self.signal_dataframe
             scaler = StandardScaler()
