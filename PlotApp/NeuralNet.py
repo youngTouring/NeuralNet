@@ -28,8 +28,8 @@ def LoadDataFromAnn():
             peaks_y_values = data[0]
             amplitude = data[1]
             latitude = data[2]
-            peaks_y_values_minima = data[4]
-            peaks_labels = data[5]
+            peaks_y_values_minima = data[3]
+            peaks_labels = data[4]
             # appending data from all files to certain lists
             peaks_y_values_collect.append(peaks_y_values)
             prominence_collect.append(amplitude)
@@ -51,11 +51,10 @@ def AnnDataFrame():
     data = LoadDataFromAnn()
     signal_dataframe = pd.DataFrame(data=data)
     # Numeric values and labels extraction
-    data,labels = signal_dataframe.iloc[:,:5],signal_dataframe['Labels']
+    data,labels = signal_dataframe.iloc[:,:4],signal_dataframe['Labels']
+    print(data)
     non_da = signal_dataframe.loc[signal_dataframe['Labels'] == 0]
     da = signal_dataframe.loc[signal_dataframe['Labels'] == 1]
-    # print(len(non_da))
-    # print(len(da))
     labels = np.ravel(labels)
     scaler = StandardScaler()
     # spliting data into training/testing features/labels
@@ -87,38 +86,6 @@ def TrainNetwork():
     model.summary()
     model.fit(train_data, train_labels, epochs=10, batch_size=32,validation_data=(test_data,test_labels),steps_per_epoch=steps_per_epoch)
     model.save('peaks_classifier_model_2.h5')
-    # model = tf.keras.Sequential([
-    #     tf.keras.layers.Flatten(input_shape=(input_shape,)),
-    #     tf.keras.layers.Conv2D(
-    #         32, (3,3), padding='same', activation='relu'),
-    #     tf.keras.layers.MaxPooling2D((2, 2)),
-    #     tf.keras.layers.Dropout(rate=0.5),
-    #
-    #     tf.keras.layers.Conv2D(
-    #         64, (4, 4), padding='same', activation='relu'),
-    #     tf.keras.layers.MaxPooling2D((2, 2)),
-    #     tf.keras.layers.Dropout(rate=0.5),
-    #
-    #     tf.keras.layers.Conv2D(
-    #         128, (4, 4), padding='same', activation='relu'),
-    #     tf.keras.layers.MaxPooling2D((2, 2)),
-    #
-    #     tf.keras.layers.Conv2D(
-    #         256, (4, 4), padding='same', activation='relu'),
-    #     tf.keras.layers.Dense(1, activation=tf.nn.sigmoid)
-    # ])
-    # # model.add(tf.keras.layers.Dense(1, activation=tf.nn.sigmoid))
-    # model.build()
-    # print(model.summary())
-    # # steps_per_epoch = np.ceil(16000 / 32)
-    # model.compile(optimizer=tf.keras.optimizers.Adam(),
-    #              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-    #              metrics=['accuracy'])
-    #
-    # history = model.fit(train_dataset, validation_data=test_dataset,
-    #                     epochs=10)
-    #
-    # model.save('da_nonda_modelCNN.h5')
     return test_data, test_labels
 
 def Predicition():
@@ -129,12 +96,3 @@ def Predicition():
     prediction = new_model.predict_classes(test)
     print(prediction)
 Predicition()
-# Check its architecture
-# train_data,test_data,train_labels,test_labels, input_shape = AnnDataFrame()
-#
-# new_model = tf.keras.models.load_model('peaks_classifier')
-# loss, acc = new_model.evaluate(test_data, test_labels, verbose=2)
-# print('Restored model, accuracy: {:5.2f}%'.format(100 * acc))
-# prediction = new_model.predict(test_data)
-# prediction = np.around(prediction)
-# print(prediction)

@@ -152,11 +152,10 @@ class TrainingPlot(QMainWindow):
         """Deletes labels from self.non_da and self.da. Deleting label from plot - in progress"""
         xdata_click = event.xdata
         xdata_nearest = (np.abs(self.xdataPlot - xdata_click)).argmin()
-        deletion_range = self.xdataPlot[
-        (self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
+        deletion_range = self.xdataPlot[(self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
         if event.key == 'z':
-            for i in deletion_range:
-                if self.non_da_plot != None:
+            if self.non_da_plot != None:
+                for i in deletion_range:
                     if i in self.non_da_amplitude_dialog.non_da_peaks[:, 0]:
                         value_to_delete = np.where(self.non_da_amplitude_dialog.non_da_peaks == i)
                         value_change = value_to_delete[0].item(0)
@@ -176,7 +175,8 @@ class TrainingPlot(QMainWindow):
                         self.minima_non_da_plot.set_offsets(self.non_da_amplitude_dialog.minima)
                         self.Update_da_plot()
                         break
-                if self.da_plot != None:
+            if self.da_plot != None:
+                for i in deletion_range:
                     if i in self.da_amplitude_dialog.da_peaks[:,0]:
                         value_to_delete = np.where(self.da_amplitude_dialog.da_peaks == i)
                         value_change = value_to_delete[0].item(0)
@@ -184,8 +184,7 @@ class TrainingPlot(QMainWindow):
                         self.non_da_added = np.insert(self.non_da_added, 0, point_to_add, axis=0)
                         self.non_da_added = np.reshape(self.non_da_added, (-1, 2))
                         self.da_amplitude_dialog.da_peaks = np.delete(self.da_amplitude_dialog.da_peaks,
-                                                                              np.where(self.da_amplitude_dialog.da_peaks[:, 0] == i)
-                                                                              ,axis=0)
+                                                                              np.where(self.da_amplitude_dialog.da_peaks[:, 0] == i),axis=0)
                         self.da_amplitude_dialog.da_peaks = np.reshape(self.da_amplitude_dialog.da_peaks, (-1, 2))
                         minima_point_to_add = self.da_amplitude_dialog.minima[value_change]
                         self.non_da_minima_points_added = np.insert(self.non_da_minima_points_added, 0, minima_point_to_add,axis=0)
@@ -197,8 +196,8 @@ class TrainingPlot(QMainWindow):
                         self.Update_non_da_plot()
                         break
         if event.key == 'x':
-            for i in deletion_range:
-                if self.non_da_plot != None:
+            if self.non_da_plot != None:
+                for i in deletion_range:
                     if i in self.non_da_amplitude_dialog.non_da_peaks[:, 0]:
                         value_to_delete = np.where(self.non_da_amplitude_dialog.non_da_peaks == i)
                         value_change = value_to_delete[0].item(0)
@@ -210,7 +209,8 @@ class TrainingPlot(QMainWindow):
                         self.non_da_plot.set_offsets(self.non_da_amplitude_dialog.non_da_peaks)
                         self.minima_non_da_plot.set_offsets(self.non_da_amplitude_dialog.minima)
                         break
-                if self.da_plot != None:
+            if self.da_plot != None:
+                for i in deletion_range:
                     if i in self.da_amplitude_dialog.da_peaks[:, 0]:
                         value_to_delete = np.where(self.da_amplitude_dialog.da_peaks == i)
                         value_change = value_to_delete[0].item(0)
@@ -255,7 +255,7 @@ class TrainingPlot(QMainWindow):
         self.minima_peaks = self.da_minima_points_added[:-1]
         self.minima_peaks = self.minima_peaks[:, 1]
         self.added_da_prominence = peak_prominences(self.data, peaks_x)[0]
-        self.added_da_width = peak_widths(self.data, peaks_x, rel_height=0.5)
+        self.added_da_width = peak_widths(self.data, peaks_x, rel_height=0.45)
         self.added_da_width = np.clip(self.added_da_width,0,65)
         return self.peaks, self.added_da_prominence, self.added_da_width[0],self.minima_peaks
 
@@ -269,7 +269,7 @@ class TrainingPlot(QMainWindow):
         self.minima_peaks = self.non_da_minima_points_added[:-1]
         self.minima_peaks = self.minima_peaks[:,1]
         self.added_non_da_prominence = peak_prominences(self.data, peaks_x)[0]
-        self.added_non_da_width = peak_widths(self.data, peaks_x, rel_height=0.5)
+        self.added_non_da_width = peak_widths(self.data, peaks_x, rel_height=0.45)
         self.added_non_da_width = np.clip(self.added_non_da_width,0,55)
         return self.peaks,self.added_non_da_prominence,self.added_non_da_width[0],self.minima_peaks
 
@@ -277,13 +277,13 @@ class TrainingPlot(QMainWindow):
         if self.non_da_plot != None:
             peaks_x = self.non_da_amplitude_dialog.non_da_peaks[:,0].astype(np.int)
             self.prominence_non_da, self.prominence_properties_non_da = peak_prominences(self.data,peaks_x)[0],peak_prominences(self.data,peaks_x)
-            self.peaks_width_non_da = peak_widths(self.data, peaks_x,prominence_data=self.prominence_properties_non_da, rel_height=0.5)
+            self.peaks_width_non_da = peak_widths(self.data, peaks_x,prominence_data=self.prominence_properties_non_da, rel_height=0.45)
             self.peaks_width_non_da = np.clip(self.peaks_width_non_da,0,55)
             return self.prominence_non_da,self.peaks_width_non_da
         if self.da_plot != None:
             peaks_x = self.da_amplitude_dialog.da_peaks[:,0].astype(np.int)
             self.prominence_da, self.prominence_properties_da = peak_prominences(self.data,peaks_x)[0],peak_prominences(self.data,peaks_x)
-            self.peaks_width_da = peak_widths(self.data, peaks_x,prominence_data=self.prominence_properties_da, rel_height=0.5)
+            self.peaks_width_da = peak_widths(self.data, peaks_x,prominence_data=self.prominence_properties_da, rel_height=0.45)
             self.peaks_width_da = np.clip(self.peaks_width_da,0,65)
             return self.prominence_da, self.peaks_width_da
 
@@ -314,7 +314,6 @@ class TrainingPlot(QMainWindow):
                     peaks_y_values_minima = np.concatenate((peaks_y_values_minima,da_minima))
                     labels = np.concatenate((non_da_labels,da_labels))
                     data = [peaks_y_values, prominence,width, peaks_y_values_minima,labels]
-                    print(data)
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
                         f.close()
@@ -343,7 +342,6 @@ class TrainingPlot(QMainWindow):
                     peaks_y_values_minima = np.concatenate((peaks_y_values_minima, non_da_minima))
                     labels = np.concatenate((da_labels, non_da_labels))
                     data = [peaks_y_values,prominence,width,peaks_y_values_minima,labels]
-                    print(data)
                     with open('./Dataset/' + f'{self.file_name_no_extension[0]}' + '.ann', 'wb') as f:
                         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
                         f.close()

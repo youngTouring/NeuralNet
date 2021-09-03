@@ -29,6 +29,7 @@ class Viewer(QMainWindow):
         self.ui.setupUi(self)
         self.ui.actionOpen.triggered.connect(self.OpenSignal)
 
+
     def OpenSignal(self):
         while self.ui.gridLayout.count():
             child = self.ui.gridLayout.takeAt(0)
@@ -72,7 +73,7 @@ class Viewer(QMainWindow):
 
     def AddPeaks(self):
         try:
-            peaks_height = 0.15
+            peaks_height = 0.3
             self.peaks, peaks_propertes = find_peaks(self.data, height=peaks_height,distance=150)
             minima_points_y = []
             minima_points_x = []
