@@ -6,7 +6,6 @@ from matplotlib.figure import Figure
 from non_da_peaks_amplitude import *
 from da_peaks_amplitude import *
 import numpy as np
-import tensorflow as tf
 import traceback
 import pickle
 import h5py
@@ -85,8 +84,7 @@ class TrainingPlot(QMainWindow):
         self.non_da_plot = None
         self.non_da_plot_added = None
 
-        file, _ = QFileDialog.getOpenFileName(self,"Open files","",
-                                              "All files (*);;H5 files (*.h5)")
+        file, _ = QFileDialog.getOpenFileName(self,"Open files","","All files (*);;H5 files (*.h5)")
         if file:
             try:
                 ### Plot and data
@@ -149,11 +147,11 @@ class TrainingPlot(QMainWindow):
             QMessageBox.critical(self,'Error',e)
 
     def ChangePeaksClass(self,event):
-        """Deletes labels from self.non_da and self.da. Deleting label from plot - in progress"""
-        xdata_click = event.xdata
-        xdata_nearest = (np.abs(self.xdataPlot - xdata_click)).argmin()
-        deletion_range = self.xdataPlot[(self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
+        """Deletes labels from self.non_da and self.da."""
         if event.key == 'z':
+            xdata_click = event.xdata
+            xdata_nearest = (np.abs(self.xdataPlot - xdata_click)).argmin()
+            deletion_range = self.xdataPlot[(self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
             if self.non_da_plot != None:
                 for i in deletion_range:
                     if i in self.non_da_amplitude_dialog.non_da_peaks[:, 0]:
@@ -196,6 +194,9 @@ class TrainingPlot(QMainWindow):
                         self.Update_non_da_plot()
                         break
         if event.key == 'x':
+            xdata_click = event.xdata
+            xdata_nearest = (np.abs(self.xdataPlot - xdata_click)).argmin()
+            deletion_range = self.xdataPlot[(self.xdataPlot >= (xdata_nearest - 350)) * (self.xdataPlot <= (xdata_nearest + 350))]
             if self.non_da_plot != None:
                 for i in deletion_range:
                     if i in self.non_da_amplitude_dialog.non_da_peaks[:, 0]:
