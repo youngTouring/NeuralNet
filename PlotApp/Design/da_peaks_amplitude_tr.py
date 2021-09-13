@@ -58,9 +58,9 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "DA_amplitude"))
-        self.label_da.setText(_translate("Dialog", "Amplitude condition:"))
+        self.label_da.setText(_translate("Dialog", "Amplitude:"))
         self.pushButtonCalculate_da.setText(_translate("Dialog", "Calculate"))
-        self.pushButtonPlot_da.setText(_translate("Dialog", "Plot AC\'s"))
+        self.pushButtonPlot_da.setText(_translate("Dialog", "Plot AC's"))
 
 
 if __name__ == "__main__":

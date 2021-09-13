@@ -29,21 +29,6 @@ class TrainingPlot(QMainWindow):
         self.ui.actionZapisz_plik.triggered.connect(self.SaveDataset)
         self.file_name_no_extension = ''
 
-        self.da_added = np.empty(shape=2)
-        self.da_minima_points_added = np.empty(shape=2)
-        self.da_plot_added = None
-        self.prominence_da = None
-        self.prominence_properties_da = None
-        self.peaks_width_da = None
-
-        self.non_da_added = np.empty(shape=2)
-        self.non_da_minima_points_added = np.empty(shape=2)
-        self.non_da_plot_added = None
-        self.minima_non_da_plot = None
-        self.prominence_non_da = None
-        self.prominence_properties_non_da = None
-        self.peaks_width_non_da = None
-
         self.ui.actionNON_DA_amplitude.triggered.connect(self.OpenNonDaAmplitude)
         self.ui.actionDA_amplitude.triggered.connect(self.OpenDaAmplitude)
 

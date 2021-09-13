@@ -30,7 +30,7 @@ class NonDaPeaks(QDialog):
             minima_x = np.array(minima_points_x)
             self.non_da_peaks = np.vstack((self.non_da_peaks,self.data[self.non_da_peaks])).T
             self.minima = np.vstack((minima_x,minima_y)).T
-            self.ui.labelPeaksNumber_non_da.setText(f'Number of NON_DA peaks: {len(self.non_da_peaks)}')
+            self.ui.labelPeaksNumber_non_da.setText(f'Number of DA peaks: {len(self.non_da_peaks)}')
         except Exception as e:
             QMessageBox.critical(self,'Info',e)
 
