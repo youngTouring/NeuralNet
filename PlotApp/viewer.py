@@ -101,12 +101,10 @@ class Viewer(QMainWindow):
             self.signal_dataframe = pd.DataFrame(data=data_dict)
             data = self.signal_dataframe
             scaler = StandardScaler()
-            RANDOM_SEED = 40
-            tf.random.set_seed(RANDOM_SEED)
             train_data,test_data = train_test_split(data,test_size=0.2,shuffle=False)
             scaler = StandardScaler().fit(train_data)
             data = scaler.transform(data)
-            classifier = tf.keras.models.load_model('peaks_classifier_model_2.h5')
+            classifier = tf.keras.models.load_model('peaks_classifier_model_3.h5')
             prediction = classifier.predict_classes(data)
             data = scaler.inverse_transform(data)
             self.signal_dataframe['Labels'] = prediction
