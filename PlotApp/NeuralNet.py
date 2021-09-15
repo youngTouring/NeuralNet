@@ -17,7 +17,7 @@ def LoadDataFromAnn():
     peaks_y_values_minima_collect = []
     labels_collect = []
     files = []
-    path = 'C:/Users/miko5/PycharmProjects/pliki_do_neuralnet/Dataset'
+    path = 'Dataset'
     for file in os.listdir(path):
         files.append(file)
     # shuffling files for more randomly uniformed dataset
@@ -106,7 +106,7 @@ def TrainNetwork():
 
 def Predicition():
     test,lab = TrainNetwork()
-    new_model = tf.keras.models.load_model('C:/Users/miko5/PycharmProjects/NeuralNet/PlotApp/peaks_classifier_model_3.h5')
+    new_model = tf.keras.models.load_model('peaks_classifier_model_.h5')
     prediction = new_model.predict_classes(test)
     fails = []
     for i in range(len(test)):
