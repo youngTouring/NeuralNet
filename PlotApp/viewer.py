@@ -29,7 +29,6 @@ class Viewer(QMainWindow):
         self.ui.setupUi(self)
         self.ui.actionOpen.triggered.connect(self.OpenSignal)
 
-
     def OpenSignal(self):
         while self.ui.gridLayout.count():
             child = self.ui.gridLayout.takeAt(0)
@@ -104,7 +103,7 @@ class Viewer(QMainWindow):
             train_data,test_data = train_test_split(data,test_size=0.2,shuffle=False)
             scaler = StandardScaler().fit(train_data)
             data = scaler.transform(data)
-            classifier = tf.keras.models.load_model('peaks_classifier_model_3.h5')
+            classifier = tf.keras.models.load_model('peaks_classifier_model.h5')
             prediction = classifier.predict_classes(data)
             data = scaler.inverse_transform(data)
             self.signal_dataframe['Labels'] = prediction

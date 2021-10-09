@@ -17,7 +17,7 @@ def LoadDataFromAnn():
     peaks_y_values_minima_collect = []
     labels_collect = []
     files = []
-    path = 'C:/Users/miko5/PycharmProjects/pliki_do_neuralnet/Dataset'
+    path = r'C:\Users\miko5\PycharmProjects\NeuralNet\PlotApp\Dataset'
     for file in os.listdir(path):
         files.append(file)
     # shuffling files for more randomly uniformed dataset
@@ -76,44 +76,42 @@ def TrainNetwork():
         tf.keras.layers.Dense(128,activation=tf.nn.relu),
         tf.keras.layers.Dense(1, activation=tf.nn.sigmoid),
     ])
-    # Podsumowanie struktury modelu:
     model.summary()
-    # Kompilacja modelu sieci:
+    # Netowork compilation:
     model.compile(optimizer='adam',
                  loss=tf.keras.losses.BinaryCrossentropy(),
                  metrics=['accuracy'])
-    # Trening sieci:
+    # Trainig:
     history = model.fit(train_data, train_labels, epochs=8, batch_size=32,validation_data=(test_data,test_labels),
                         steps_per_epoch=steps_per_epoch)
     model.save('peaks_classifier_model.h5')
-    # Wykres z dokładnością treningu oraz funckją straty:
+    # Loss function and accuracy plots
     hist = history.history
     fig = plt.figure(figsize=(12, 5))
     ax = fig.add_subplot(1, 2, 1)
     ax.plot(hist['loss'], lw=3)
-    ax.set_title('Funkcja straty uczenia', size=15)
-    ax.set_xlabel('Epoka', size=15)
+    ax.set_title('Loss', size=15)
+    ax.set_xlabel('Epoch', size=15)
     ax.tick_params(axis='both', which='major', labelsize=15)
     ax = fig.add_subplot(1, 2, 2)
     ax.plot(hist['accuracy'], lw=3)
-    ax.set_title('Dokładność treningu', size=15)
-    ax.set_xlabel('Epoka', size=15)
+    ax.set_title('Accuracy', size=15)
+    ax.set_xlabel('Epoch', size=15)
     ax.tick_params(axis='both', which='major', labelsize=15)
     plt.tight_layout()
-    plt.savefig('krzywa_uczenia.pdf')
     plt.show()
+    plt.savefig('training_curve.pdf')
     return test_data, test_labels
 
 def Predicition():
     test,lab = TrainNetwork()
-    new_model = tf.keras.models.load_model('C:/Users/miko5/PycharmProjects/NeuralNet/PlotApp/peaks_classifier_model_3.h5')
+    new_model = tf.keras.models.load_model(r'C:\Users\miko5\PycharmProjects\NeuralNet\PlotApp\peaks_classifier_model.h5')
     prediction = new_model.predict_classes(test)
     fails = []
     for i in range(len(test)):
-        # print(f'{test[i].tolist()} => {prediction[i]} (expected {lab[i]})')
+        print(f'{test[i].tolist()} ==> {prediction[i]} (expected {lab[i]})')
         if prediction[i] != lab[i]:
             fails.append(prediction[i])
-    print(fails)
     accuracy = len(fails)/len(test) * 100
-    print(accuracy)
+    print(round(accuracy,2))
 Predicition()
